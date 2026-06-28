@@ -1,33 +1,16 @@
 import os
 import aiohttp
 
+from config import GOFILE_API_TOKEN
+
 
 async def upload_to_gofile(file_path: str):
-    """
-    Upload a file anonymously to GoFile.
-    Returns the public download URL.
-    """
 
-    # Step 1: Get an upload server
-    async with aiohttp.ClientSession() as session:
-        async with session.get(
-            "https://api.gofile.io/getServer"
-        ) as response:
+    url = "https://upload.gofile.io/uploadfile"
 
-            if response.status != 200:
-                raise Exception("Unable to get GoFile upload server.")
-
-            data = await response.json()
-
-            server = (
-                data.get("data", {}).get("server")
-                or data.get("server")
-            )
-
-            if not server:
-                raise Exception("GoFile server not found.")
-
-    upload_url = f"https://{server}.gofile.io/uploadFile"
+    headers = {
+        "Authorization": f"Bearer {GOFILE_API_TOKEN}"
+    }
 
     form = aiohttp.FormData()
 
@@ -36,21 +19,20 @@ async def upload_to_gofile(file_path: str):
             "file",
             file,
             filename=os.path.basename(file_path),
-            content_type="application/octet-stream",
+            content_type="application/octet-stream"
         )
 
-        async with aiohttp.ClientSession() as session:
-            async with session.post(
-                upload_url,
-                data=form
-            ) as response:
+        async with aiohttp.ClientSession(headers=headers) as session:
+            async with session.post(url, data=form) as response:
+
+                data = await response.json(content_type=None)
 
                 if response.status not in (200, 201):
-                    raise Exception(await response.text())
+                    raise Exception(
+                        data.get("message", f"HTTP {response.status}")
+                    )
 
-                result = await response.json(content_type=None)
+    if data.get("status") != "ok":
+        raise Exception(data.get("message", "Upload failed"))
 
-    if result.get("status") != "ok":
-        raise Exception(result)
-
-    return result["data"]["downloadPage"]
+    return data["data"]["downloadPage"]
