@@ -1,5 +1,5 @@
 import os
-
+from uploaders.gofile import upload_to_gofile
 from pyrogram import Client
 from pyrogram.types import CallbackQuery
 
@@ -47,21 +47,30 @@ async def callback_handler(client: Client, callback: CallbackQuery):
         )
 
     try:
-        await callback.message.edit_text(
+        if destination == "pixeldrain":
+            await callback.message.edit_text(
             "⬆️ Uploading to PixelDrain..."
         )
+            url = await upload_to_pixeldrain(file_path)
 
-        url = await upload_to_pixeldrain(file_path)
+        elif destination == "gofile":
+            await callback.message.edit_text(
+                "⬆️ Uploading to GoFile..."
+        )
+            url = await upload_to_gofile(file_path)
+
+        else:
+            raise Exception("Unknown upload destination.")
 
         await callback.message.edit_text(
             f"✅ Upload Complete!\n\n🔗 {url}"
-        )
+    )
 
     except Exception as e:
         await callback.message.edit_text(
             f"❌ Upload failed\n\n`{e}`"
-        )
+    )
 
     finally:
         if os.path.exists(file_path):
-            os.remove(file_path)
+           os.remove(file_path)
