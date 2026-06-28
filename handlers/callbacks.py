@@ -20,16 +20,16 @@ async def callback_handler(client: Client, callback: CallbackQuery):
     
     if action == "cancel":
 
-    cancel_task(task_id)
+        cancel_task(task_id)
 
-    await callback.message.edit_text(
-        "❌ Cancelled."
-    )
+        await callback.message.edit_text(
+            "❌ Cancelled."
+        )
 
-    tasks.pop(task_id, None)
-    remove_cancel_task(task_id)
+        tasks.pop(task_id, None)
+        remove_cancel_task(task_id)
 
-    return
+        return
 
     destination = action
 
