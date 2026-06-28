@@ -3,7 +3,12 @@ from uploaders.gofile import upload_to_gofile
 from pyrogram import Client
 from pyrogram.types import CallbackQuery
 
-from tasks import tasks
+from core.cancel_tasks import (
+    cancel_task,
+    remove_cancel_task,
+)
+
+from core.tasks import tasks
 from downloaders.telegram import download_telegram_file
 from downloaders.direct import download_direct_file
 from uploaders.pixeldrain import upload_to_pixeldrain
@@ -11,7 +16,23 @@ from uploaders.pixeldrain import upload_to_pixeldrain
 
 @Client.on_callback_query()
 async def callback_handler(client: Client, callback: CallbackQuery):
-    destination, task_id = callback.data.split("|")
+    action, task_id = callback.data.split("|")
+    
+    if action == "cancel":
+
+    cancel_task(task_id)
+
+    await callback.message.edit_text(
+        "❌ Cancelled."
+    )
+
+    tasks.pop(task_id, None)
+    remove_cancel_task(task_id)
+
+    return
+
+    destination = action
+
 
     task = tasks.get(task_id)
 
@@ -43,7 +64,8 @@ async def callback_handler(client: Client, callback: CallbackQuery):
     else:
         file_path = await download_direct_file(
             message.text,
-            callback.message
+            callback.message,
+            task_id
         )
 
     try:
@@ -72,5 +94,9 @@ async def callback_handler(client: Client, callback: CallbackQuery):
     )
 
     finally:
+
+        tasks.pop(task_id, None)
+        remove_cancel_task(task_id)
+
         if os.path.exists(file_path):
-           os.remove(file_path)
+            os.remove(file_path)
