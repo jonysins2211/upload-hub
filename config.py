@@ -10,6 +10,12 @@ BOT_TOKEN = os.getenv("BOT_TOKEN")
 
 PIXELDRAIN_API_KEY = os.getenv("PIXELDRAIN_API_KEY")
 GOFILE_API_TOKEN = os.getenv("GOFILE_API_TOKEN")
+
+SUDO_USERS = [
+    int(x)
+    for x in os.getenv("SUDO_USERS", "").split(",")
+    if x.strip()
+]
 # Directories
 DOWNLOAD_PATH = "downloads"
 
