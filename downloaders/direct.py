@@ -6,12 +6,13 @@ import httpx
 
 from config import DOWNLOAD_PATH
 from utils.progress import progress
+from core.tasks import is_cancelled
 
 
 async def download_direct_file(
-    url,
-    status_message,
-    task_id
+    url: str,
+    status_message=None,
+    task_id=None
 ):
     """
     Download a file from a direct URL with progress.
@@ -75,20 +76,20 @@ async def download_direct_file(
             async with aiofiles.open(file_path, "wb") as f:
 
                 async for chunk in response.aiter_bytes(1024 * 256):
-                    
-                    if is_cancelled(task_id):
-                        raise Exception("Download cancelled.")
+
+                    if task_id and is_cancelled(task_id):
+                        raise Exception("❌ Download cancelled by user.")
 
                     await f.write(chunk)
 
-                    current += len(chunk)
+                   current += len(chunk)
 
-                    if status_message:
-                        await progress(
-                            current,
-                            total,
-                            status_message,
-                            "⬇️ Downloading..."
-                        )
+                   if status_message:
+                       await progress(
+            current,
+            total,
+            status_message,
+            "⬇️ Downloading..."
+        )
 
     return file_path
