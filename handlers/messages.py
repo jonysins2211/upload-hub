@@ -1,5 +1,6 @@
 import re
 from tasks import create_task
+from utils.helpers import human_size
 
 from pyrogram import Client, filters
 from pyrogram.types import (
@@ -24,19 +25,19 @@ async def message_handler(client: Client, message: Message):
     # Telegram document
     if message.document:
         file_name = message.document.file_name
-        file_size = message.document.file_size
+        file_size = human_size(message.document.file_size)
         input_type = "telegram"
 
     # Telegram video
     elif message.video:
         file_name = message.video.file_name or "video.mp4"
-        file_size = message.video.file_size
+        file_size = human_size(message.video.file_size)
         input_type = "telegram"
 
     # Telegram audio
     elif message.audio:
         file_name = message.audio.file_name
-        file_size = message.audio.file_size
+        file_size = human_size(message.audio.file_size)
         input_type = "telegram"
 
     # Direct Link
