@@ -1,6 +1,6 @@
 from pyrogram import Client
 from pyrogram.types import CallbackQuery
-
+from downloaders.direct import download_direct_file
 from tasks import tasks
 from downloaders.telegram import download_telegram_file
 
@@ -41,8 +41,12 @@ async def callback_handler(client: Client, callback: CallbackQuery):
         await callback.message.edit_text(
             f"✅ Download complete!\n\n`{file_path}`"
         )
-
     else:
-        await callback.message.edit_text(
-            "🌐 Direct link downloader will be added next."
-        )
+    file_path = await download_direct_file(
+        message.text,
+        callback.message
+    )
+
+    await callback.message.edit_text(
+        f"✅ Download complete!\n\n`{file_path}`"
+    )
