@@ -56,7 +56,7 @@ async def message_handler(client: Client, message: Message):
     
     create_cancel_task(task_id)
 
-    InlineKeyboardMarkup(
+    keyboard = InlineKeyboardMarkup(
     [
         [
             InlineKeyboardButton(
