@@ -5,26 +5,31 @@ import aiohttp
 async def upload_to_pixeldrain(file_path: str):
     """
     Upload a file anonymously to PixelDrain.
-    Returns the public download URL.
+    Returns the public URL.
     """
 
-    filename = os.path.basename(file_path)
+    url = "https://pixeldrain.com/api/file"
 
-    url = f"https://pixeldrain.com/api/file/{filename}"
+    form = aiohttp.FormData()
 
-    async with aiohttp.ClientSession() as session:
-        with open(file_path, "rb") as file:
+    with open(file_path, "rb") as f:
+        form.add_field(
+            "file",
+            f,
+            filename=os.path.basename(file_path),
+            content_type="application/octet-stream"
+        )
 
-            async with session.put(
-                url,
-                data=file
-            ) as response:
+        async with aiohttp.ClientSession() as session:
+            async with session.post(url, data=form) as response:
 
-                response.raise_for_status()
+                text = await response.text()
 
-                result = await response.json()
+                if response.status != 200:
+                    raise Exception(
+                        f"PixelDrain Error {response.status}: {text}"
+                    )
 
-    if not result.get("success"):
-        raise Exception(result.get("message", "Upload failed"))
+                data = await response.json()
 
-    return f"https://pixeldrain.com/u/{result['id']}"
+    return f"https://pixeldrain.com/u/{data['id']}"
