@@ -3,7 +3,7 @@ from pyrogram.types import CallbackQuery
 from downloaders.direct import download_direct_file
 from tasks import tasks
 from downloaders.telegram import download_telegram_file
-
+from uploaders.pixeldrain import upload_to_pixeldrain
 
 @Client.on_callback_query()
 async def callback_handler(client: Client, callback: CallbackQuery):
