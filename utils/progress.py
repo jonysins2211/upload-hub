@@ -1,15 +1,15 @@
 import time
 
-_last_update = {}
+_last = {}
 
 
 def human_size(size):
     if size is None:
-        return "0 B"
+        return "Unknown"
 
-    units = ["B", "KB", "MB", "GB", "TB"]
+    size = float(size)
 
-    for unit in units:
+    for unit in ("B", "KB", "MB", "GB", "TB"):
         if size < 1024:
             return f"{size:.2f} {unit}"
         size /= 1024
@@ -17,31 +17,84 @@ def human_size(size):
     return f"{size:.2f} PB"
 
 
+def human_time(seconds):
+    if seconds <= 0:
+        return "--:--"
+
+    minutes, seconds = divmod(int(seconds), 60)
+    hours, minutes = divmod(minutes, 60)
+
+    if hours:
+        return f"{hours:02}:{minutes:02}:{seconds:02}"
+
+    return f"{minutes:02}:{seconds:02}"
+
+
 async def progress(current, total, message, action):
+
+    key = f"{message.chat.id}:{message.id}"
     now = time.time()
 
-    chat_id = message.chat.id
-    msg_id = message.id
-    key = f"{chat_id}:{msg_id}"
+    if key not in _last:
+        _last[key] = {
+            "time": now,
+            "bytes": current,
+            "last_edit": 0
+        }
 
-    # Update at most once every 2 seconds
-    if key in _last_update and now - _last_update[key] < 2:
+    data = _last[key]
+
+    # Edit every 5 seconds
+    if current != total and now - data["last_edit"] < 5:
         return
 
-    _last_update[key] = now
+    elapsed = now - data["time"]
 
-    percent = current * 100 / total if total else 0
+    transferred = current - data["bytes"]
 
-    completed = int(percent / 10)
-    bar = "█" * completed + "░" * (10 - completed)
+    speed = transferred / elapsed if elapsed > 0 else 0
 
-    text = (
-        f"{action}\n\n"
-        f"`{bar}` {percent:.1f}%\n\n"
-        f"📦 {human_size(current)} / {human_size(total)}"
+    eta = (
+        (total - current) / speed
+        if speed > 0 and total
+        else 0
     )
+
+    data["time"] = now
+    data["bytes"] = current
+    data["last_edit"] = now
+
+    if total:
+
+        percent = current * 100 / total
+
+        filled = int(percent / 5)
+
+        bar = (
+            "█" * filled +
+            "░" * (20 - filled)
+        )
+
+        text = (
+            f"{action}\n\n"
+            f"`{bar}` {percent:.2f}%\n\n"
+            f"📦 {human_size(current)} / {human_size(total)}\n"
+            f"⚡ {human_size(speed)}/s\n"
+            f"⏳ ETA: {human_time(eta)}"
+        )
+
+    else:
+
+        text = (
+            f"{action}\n\n"
+            f"📦 Downloaded: {human_size(current)}\n"
+            f"⚡ {human_size(speed)}/s"
+        )
 
     try:
         await message.edit_text(text)
-    except Exception:
+    except:
         pass
+
+    if current == total:
+        _last.pop(key, None)

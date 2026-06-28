@@ -5,42 +5,83 @@ import aiofiles
 import httpx
 
 from config import DOWNLOAD_PATH
+from utils.progress import progress
 
 
 async def download_direct_file(url: str, status_message=None):
     """
-    Download a file from a direct URL and return the local file path.
+    Download a file from a direct URL with progress.
     """
 
     if status_message:
-        await status_message.edit_text("⬇️ Downloading file...")
+        await status_message.edit_text("⬇️ Starting download...")
 
-    async with httpx.AsyncClient(follow_redirects=True, timeout=None) as client:
-        response = await client.get(url)
+    async with httpx.AsyncClient(
+        follow_redirects=True,
+        timeout=None
+    ) as client:
 
-        response.raise_for_status()
+        async with client.stream("GET", url) as response:
 
-        # Try to get filename from Content-Disposition
-        filename = None
+            response.raise_for_status()
 
-        content_disposition = response.headers.get("Content-Disposition")
+            # Filename
+            filename = None
 
-        if content_disposition and "filename=" in content_disposition:
-            filename = content_disposition.split("filename=")[-1].strip('"')
-
-        # Otherwise use filename from URL
-        if not filename:
-            filename = os.path.basename(
-                unquote(urlparse(str(response.url)).path)
+            content_disposition = response.headers.get(
+                "Content-Disposition"
             )
 
-        # Final fallback
-        if not filename:
-            filename = "downloaded_file"
+            if (
+                content_disposition
+                and "filename=" in content_disposition
+            ):
+                filename = (
+                    content_disposition
+                    .split("filename=")[-1]
+                    .strip('"')
+                )
 
-        file_path = os.path.join(DOWNLOAD_PATH, filename)
+            if not filename:
+                filename = os.path.basename(
+                    unquote(
+                        urlparse(str(response.url)).path
+                    )
+                )
 
-        async with aiofiles.open(file_path, "wb") as f:
-            await f.write(response.content)
+            if not filename:
+                filename = "downloaded_file"
+
+            file_path = os.path.join(
+                DOWNLOAD_PATH,
+                filename
+            )
+
+            # File Size
+            length = response.headers.get("Content-Length")
+
+            total = (
+                int(length)
+                if length and length.isdigit()
+                else 0
+            )
+
+            current = 0
+
+            async with aiofiles.open(file_path, "wb") as f:
+
+                async for chunk in response.aiter_bytes(1024 * 256):
+
+                    await f.write(chunk)
+
+                    current += len(chunk)
+
+                    if status_message:
+                        await progress(
+                            current,
+                            total,
+                            status_message,
+                            "⬇️ Downloading..."
+                        )
 
     return file_path
