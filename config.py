@@ -7,7 +7,7 @@ load_dotenv()
 API_ID = int(os.getenv("API_ID"))
 API_HASH = os.getenv("API_HASH")
 BOT_TOKEN = os.getenv("BOT_TOKEN")
-
+PIXELDRAIN_API_KEY = os.getenv("PIXELDRAIN_API_KEY")
 # Directories
 DOWNLOAD_PATH = "downloads"
 

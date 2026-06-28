@@ -1,3 +1,4 @@
+import os
 from pyrogram import Client
 from pyrogram.types import CallbackQuery
 from downloaders.direct import download_direct_file
