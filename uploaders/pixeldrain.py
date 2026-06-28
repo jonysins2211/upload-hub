@@ -1,6 +1,5 @@
 import os
-
-import httpx
+import aiohttp
 
 
 async def upload_to_pixeldrain(file_path: str):
@@ -11,22 +10,21 @@ async def upload_to_pixeldrain(file_path: str):
 
     filename = os.path.basename(file_path)
 
-    upload_url = f"https://pixeldrain.com/api/file/{filename}"
+    url = f"https://pixeldrain.com/api/file/{filename}"
 
-    async with httpx.AsyncClient(timeout=None) as client:
+    async with aiohttp.ClientSession() as session:
         with open(file_path, "rb") as file:
-            response = await client.put(
-                upload_url,
-                content=file
-            )
 
-    response.raise_for_status()
+            async with session.put(
+                url,
+                data=file
+            ) as response:
 
-    data = response.json()
+                response.raise_for_status()
 
-    if not data.get("success"):
-        raise Exception(data.get("message", "Upload failed"))
+                result = await response.json()
 
-    file_id = data["id"]
+    if not result.get("success"):
+        raise Exception(result.get("message", "Upload failed"))
 
-    return f"https://pixeldrain.com/u/{file_id}"
+    return f"https://pixeldrain.com/u/{result['id']}"
