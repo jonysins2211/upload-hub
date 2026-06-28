@@ -3,7 +3,7 @@ import os
 from pyrogram.types import Message
 
 from config import DOWNLOAD_PATH
-
+from utils.progress import progress
 
 async def download_telegram_file(
     message: Message,
@@ -35,8 +35,14 @@ async def download_telegram_file(
     if status_message:
         await status_message.edit_text("⬇️ Downloading file...")
 
-    await message.download(
-        file_name=file_path
-    )
 
+    await message.download(
+        file_name=file_path,
+        progress=progress,
+        progress_args=(
+            status_message,
+            "⬇️ Downloading..."
+        )
+    )
+    
     return file_path
