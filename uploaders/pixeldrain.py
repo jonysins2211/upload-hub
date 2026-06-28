@@ -27,7 +27,7 @@ async def upload_to_pixeldrain(file_path: str):
 
             text = await response.text()
 
-            if response.status != 200:
+            if response.status not in (200, 201):
                 raise Exception(
                     f"PixelDrain Error {response.status}\n{text}"
                 )

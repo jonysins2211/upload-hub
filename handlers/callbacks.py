@@ -53,6 +53,8 @@ async def callback_handler(client: Client, callback: CallbackQuery):
     )
 
     try:
+        await callback.message.edit_text("⬆️ Uploading to PixelDrain...")
+
         url = await upload_to_pixeldrain(file_path)
 
         await callback.message.edit_text(
@@ -60,12 +62,14 @@ async def callback_handler(client: Client, callback: CallbackQuery):
     )
 
     except Exception as e:
-        await callback.message.edit_text(str(e))
+        await callback.message.edit_text(
+            f"❌ Upload failed\n\n`{e}`"
+    )
 
     finally:
         if os.path.exists(file_path):
            os.remove(file_path)
-
+           
     await callback.message.edit_text(
         f"✅ Upload Complete!\n\n🔗 {url}"
     )
