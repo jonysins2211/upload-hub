@@ -84,8 +84,8 @@ async def download_direct_file(
 
                     current += len(chunk)
 
-                   if status_message:
-                       await progress(
+                    if status_message:
+                        await progress(
             current,
             total,
             status_message,
