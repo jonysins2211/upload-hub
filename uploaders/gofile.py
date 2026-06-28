@@ -25,7 +25,17 @@ async def upload_to_gofile(file_path: str):
         async with aiohttp.ClientSession(headers=headers) as session:
             async with session.post(url, data=form) as response:
 
-                data = await response.json(content_type=None)
+                text = await response.text()
+
+                print("Status:", response.status)
+                print("Response:", text)
+
+                try:
+                    data = await response.json(content_type=None)
+                except Exception:
+                    raise Exception(
+                        f"HTTP {response.status}\n\n{text}"
+                 )
 
                 if response.status not in (200, 201):
                     raise Exception(
