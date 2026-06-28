@@ -7,8 +7,6 @@ import httpx
 from config import DOWNLOAD_PATH
 from utils.progress import progress
 
-from core.cancel_tasks import is_cancelled
-
 
 async def download_direct_file(
     url,
