@@ -15,7 +15,7 @@ URL_PATTERN = re.compile(r"^https?://\S+$")
 
 @Client.on_message(
     filters.private
-    & ~filters.command(None)
+    & ~filters.command(["start", "update"])
 )
 
 async def message_handler(client: Client, message: Message):
