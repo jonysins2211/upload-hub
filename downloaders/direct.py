@@ -1,4 +1,5 @@
 import os
+import asyncio
 from urllib.parse import urlparse, unquote
 
 import aiofiles
@@ -83,7 +84,7 @@ async def download_direct_file(
                 async for chunk in response.aiter_bytes(1024 * 256):
 
                     if task_id and is_cancelled(task_id):
-                        raise Exception("❌ Download cancelled by user.")
+                        raise asyncio.CancelledError()
 
                     await f.write(chunk)
 
