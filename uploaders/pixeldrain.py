@@ -7,12 +7,7 @@ from config import PIXELDRAIN_API_KEY
 from utils.upload_stream import UploadStream
 
 
-async def upload_to_pixeldrain(
-    file_path,
-    status_message,
-    task_id,
-    keyboard
-):
+async def upload_to_pixeldrain(file_path):
 
     auth = aiohttp.BasicAuth(
         login="",
