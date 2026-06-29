@@ -21,7 +21,10 @@ async def download_direct_file(
     """
 
     if status_message:
-        await status_message.edit_text("⬇️ Starting download...")
+        await status_message.edit_text(
+            "⬇️ Starting download...",
+            reply_markup=keyboard
+        )
 
     async with httpx.AsyncClient(
         follow_redirects=True,
