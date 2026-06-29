@@ -7,7 +7,9 @@ from utils.progress import progress
 
 async def download_telegram_file(
     message: Message,
-    status_message=None
+    status_message=None,
+    task_id=None,
+    keyboard=None
 ):
     """
     Downloads a Telegram file and returns its local path.
@@ -33,7 +35,10 @@ async def download_telegram_file(
     file_path = os.path.join(DOWNLOAD_PATH, filename)
 
     if status_message:
-        await status_message.edit_text("⬇️ Downloading file...")
+        await status_message.edit_text(
+            "⬇️ Downloading file...",
+            reply_markup=keyboard
+        )
 
 
     await message.download(
@@ -41,7 +46,8 @@ async def download_telegram_file(
         progress=progress,
         progress_args=(
             status_message,
-            "⬇️ Downloading..."
+            "⬇️ Downloading...",
+            keyboard
         )
     )
     
