@@ -58,7 +58,8 @@ async def callback_handler(client: Client, callback: CallbackQuery):
     message = task["message"]
 
     await callback.message.edit_text(
-        f"⏳ Preparing upload to **{destination.title()}**..."
+        f"⏳ Preparing upload to **{destination.title()}**...",
+        reply_markup=cancel_keyboard
     )
 
     # Download
@@ -86,13 +87,15 @@ async def callback_handler(client: Client, callback: CallbackQuery):
     try:
         if destination == "pixeldrain":
             await callback.message.edit_text(
-            "⬆️ Uploading to PixelDrain..."
-        )
+                "⬆️ Uploading to PixelDrain...",
+                reply_markup=cancel_keyboard
+            )
             url = await upload_to_pixeldrain(file_path)
 
         elif destination == "gofile":
             await callback.message.edit_text(
-                "⬆️ Uploading to GoFile..."
+                "⬆️ Uploading to GoFile...",
+                reply_markup=cancel_keyboard
         )
             url = await upload_to_gofile(file_path)
 
