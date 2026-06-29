@@ -10,10 +10,12 @@ from core.tasks import is_cancelled
 
 
 async def download_direct_file(
-    url: str,
-    status_message=None,
-    task_id=None
+    url,
+    status_message,
+    task_id,
+    keyboard
 ):
+    
     """
     Download a file from a direct URL with progress.
     """
@@ -89,7 +91,8 @@ async def download_direct_file(
                             current,
                             total,
                             status_message,
-                            "⬇️ Downloading..."
+                            "⬇️ Downloading...",
+                            keyboard
                        )
 
     return file_path
