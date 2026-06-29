@@ -1,7 +1,11 @@
 import os
 from uploaders.gofile import upload_to_gofile
 from pyrogram import Client
-from pyrogram.types import CallbackQuery
+from pyrogram.types import (
+    CallbackQuery,
+    InlineKeyboardMarkup,
+    InlineKeyboardButton,
+)
 
 from core.tasks import (
     get_task,
@@ -18,7 +22,16 @@ from uploaders.pixeldrain import upload_to_pixeldrain
 @Client.on_callback_query()
 async def callback_handler(client: Client, callback: CallbackQuery):
     action, task_id = callback.data.split("|")
-    
+    cancel_keyboard = InlineKeyboardMarkup(
+    [
+        [
+            InlineKeyboardButton(
+                "❌ Cancel",
+                callback_data=f"cancel|{task_id}"
+            )
+        ]
+    ]
+    )
     if action == "cancel":
 
         cancel_task(task_id)
