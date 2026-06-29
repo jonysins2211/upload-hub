@@ -7,12 +7,7 @@ from config import GOFILE_API_TOKEN
 from utils.upload_stream import UploadStream
 
 
-async def upload_to_gofile(
-    file_path,
-    status_message,
-    task_id,
-    keyboard
-):
+async def upload_to_gofile(file_path):
 
     headers = {
         "Authorization": f"Bearer {GOFILE_API_TOKEN}"
