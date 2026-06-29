@@ -79,7 +79,8 @@ async def callback_handler(client: Client, callback: CallbackQuery):
         file_path = await download_direct_file(
             message.text,
             callback.message,
-            task_id
+            task_id,
+            cancel_keyboard
         )
 
     try:
