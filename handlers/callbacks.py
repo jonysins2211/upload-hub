@@ -37,16 +37,14 @@ async def callback_handler(client: Client, callback: CallbackQuery):
         ]
     )
 
-    # Cancel request
+    # Cancel
     if action == "cancel":
-
         cancel_task(task_id)
 
         await callback.answer(
             "Cancelling...",
             show_alert=False
         )
-
         return
 
     destination = action
@@ -73,7 +71,7 @@ async def callback_handler(client: Client, callback: CallbackQuery):
             reply_markup=cancel_keyboard
         )
 
-        # Telegram file
+        # Telegram media
         if (
             message.document
             or message.video
@@ -104,8 +102,7 @@ async def callback_handler(client: Client, callback: CallbackQuery):
         if destination == "pixeldrain":
 
             await callback.message.edit_text(
-                "⬆️ Uploading to PixelDrain...",
-                reply_markup=cancel_keyboard
+                "⬆️ Uploading to PixelDrain..."
             )
 
             url = await upload_to_pixeldrain(file_path)
@@ -113,8 +110,7 @@ async def callback_handler(client: Client, callback: CallbackQuery):
         elif destination == "gofile":
 
             await callback.message.edit_text(
-                "⬆️ Uploading to GoFile...",
-                reply_markup=cancel_keyboard
+                "⬆️ Uploading to GoFile..."
             )
 
             url = await upload_to_gofile(file_path)
@@ -147,25 +143,3 @@ async def callback_handler(client: Client, callback: CallbackQuery):
             and os.path.exists(file_path)
         ):
             os.remove(file_path)
-    await callback.message.edit_text(
-        f"✅ Upload Complete!\n\n🔗 {url}"
-    )
-
-except asyncio.CancelledError:
-
-    await callback.message.edit_text(
-        "❌ Operation cancelled."
-    )
-
-except Exception as e:
-
-    await callback.message.edit_text(
-        f"❌ Upload failed\n\n`{e}`"
-    )
-
-finally:
-
-    remove_task(task_id)
-
-    if file_path and os.path.exists(file_path):
-        os.remove(file_path)
