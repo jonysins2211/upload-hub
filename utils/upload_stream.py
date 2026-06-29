@@ -1,75 +1,65 @@
+import asyncio
 import os
-import time
+
+from core.tasks import is_cancelled
+from utils.progress import progress
 
 
 class UploadStream:
-    """
-    Wraps a file object and reports upload progress every time aiohttp
-    reads data from it.
-    """
 
     def __init__(
         self,
         file_path,
-        progress_callback=None,
-        message=None,
-        action="⬆️ Uploading..."
+        status_message,
+        task_id,
+        keyboard,
+        chunk_size=1024 * 256,
     ):
+
         self.file = open(file_path, "rb")
 
-        self.size = os.path.getsize(file_path)
+        self.file_path = file_path
+
+        self.status_message = status_message
+
+        self.task_id = task_id
+
+        self.keyboard = keyboard
+
+        self.chunk_size = chunk_size
+
+        self.total = os.path.getsize(file_path)
+
         self.current = 0
 
-        self.progress_callback = progress_callback
-        self.message = message
-        self.action = action
+    async def read(self, size=-1):
 
-        self.last_update = 0
+        if is_cancelled(self.task_id):
+            raise asyncio.CancelledError()
 
-    def read(self, size=-1):
-        data = self.file.read(size)
+        chunk = self.file.read(
+            self.chunk_size
+            if size == -1
+            else min(size, self.chunk_size)
+        )
 
-        if data:
-            self.current += len(data)
+        if not chunk:
+            return b""
 
-            now = time.time()
+        self.current += len(chunk)
 
-            # Update every 5 seconds or when finished
-            if (
-                now - self.last_update >= 5
-                or self.current >= self.size
-            ):
-                self.last_update = now
+        await progress(
+            self.current,
+            self.total,
+            self.status_message,
+            "⬆️ Uploading...",
+            self.keyboard
+        )
 
-                if self.progress_callback:
-                    import asyncio
-
-                    try:
-                        loop = asyncio.get_running_loop()
-
-                        loop.create_task(
-                            self.progress_callback(
-                                self.current,
-                                self.size,
-                                self.message,
-                                self.action
-                            )
-                        )
-
-                    except RuntimeError:
-                        pass
-
-        return data
+        return chunk
 
     def close(self):
         self.file.close()
 
-    # Delegate everything else to the real file object
-    def __getattr__(self, item):
-        return getattr(self.file, item)
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        self.close()
+    def __len__(self):
+        return self.total
