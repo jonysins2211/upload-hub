@@ -86,10 +86,10 @@ async def download_direct_file(
 
                     if status_message:
                         await progress(
-            current,
-            total,
-            status_message,
-            "⬇️ Downloading..."
-        )
+                            current,
+                            total,
+                            status_message,
+                            "⬇️ Downloading..."
+                       )
 
     return file_path
