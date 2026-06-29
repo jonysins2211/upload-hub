@@ -30,7 +30,13 @@ def human_time(seconds):
     return f"{minutes:02}:{seconds:02}"
 
 
-async def progress(current, total, message, action):
+async def progress(
+    current,
+    total,
+    message,
+    action,
+    keyboard=None
+):
 
     key = f"{message.chat.id}:{message.id}"
     now = time.time()
@@ -92,7 +98,10 @@ async def progress(current, total, message, action):
         )
 
     try:
-        await message.edit_text(text)
+        await message.edit_text(
+            text,
+            reply_markup=keyboard
+        )
     except:
         pass
 
