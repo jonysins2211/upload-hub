@@ -1,4 +1,5 @@
 import os
+import asyncio
 from uploaders.gofile import upload_to_gofile
 from pyrogram import Client
 from pyrogram.types import (
@@ -36,11 +37,10 @@ async def callback_handler(client: Client, callback: CallbackQuery):
 
         cancel_task(task_id)
 
-        await callback.message.edit_text(
-            "❌ Cancelled."
+        await callback.answer(
+            "Cancelling...",
+            show_alert=False
         )
-
-        remove_task(task_id)
 
         return
 
@@ -106,10 +106,17 @@ async def callback_handler(client: Client, callback: CallbackQuery):
             f"✅ Upload Complete!\n\n🔗 {url}"
     )
 
+    except asyncio.CancelledError:
+
+        await callback.message.edit_text(
+            "❌ Operation cancelled."
+        )
+
     except Exception as e:
+
         await callback.message.edit_text(
             f"❌ Upload failed\n\n`{e}`"
-    )
+        )
 
     finally:
 
