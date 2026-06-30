@@ -3,9 +3,9 @@
 ![Pyrogram](https://img.shields.io/badge/Pyrogram-2.x-blue)
 ![License](https://img.shields.io/github/license/subashbuilds/UploadHub)
 ![Stars](https://img.shields.io/github/stars/subashbuilds/UploadHub?style=social)
-![Forks](https://img.shields.io/github/forks/subashbuilds/UploadHub?style=social)
 ![Issues](https://img.shields.io/github/issues/subashbuilds/UploadHub)
 ![Last Commit](https://img.shields.io/github/last-commit/subashbuilds/UploadHub)
+
 A powerful and lightweight Telegram bot built with **Pyrogram** that downloads files from **Telegram** or **direct download links** and uploads them to **PixelDrain** or **GoFile**.
 
 ---
