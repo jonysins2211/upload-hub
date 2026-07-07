@@ -32,7 +32,10 @@ async def download_telegram_file(
     if not filename:
         filename = f"{media.file_unique_id}.bin"
 
-    file_path = os.path.join(DOWNLOAD_PATH, filename)
+    task_download_path = os.path.join(DOWNLOAD_PATH, task_id or str(message.id))
+    os.makedirs(task_download_path, exist_ok=True)
+
+    file_path = os.path.join(task_download_path, filename)
 
     if status_message:
         await status_message.edit_text(

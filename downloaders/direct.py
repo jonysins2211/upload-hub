@@ -63,8 +63,11 @@ async def download_direct_file(
             if not filename:
                 filename = "downloaded_file"
 
+            task_download_path = os.path.join(DOWNLOAD_PATH, task_id or "direct")
+            os.makedirs(task_download_path, exist_ok=True)
+
             file_path = os.path.join(
-                DOWNLOAD_PATH,
+                task_download_path,
                 filename
             )
 
