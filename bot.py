@@ -15,7 +15,6 @@ app = Client(
     plugins={"root": "handlers"},
     workers=BOT_WORKERS,
     max_concurrent_transmissions=MAX_CONCURRENT_TRANSMISSIONS,
-    workers=8,
     max_concurrent_transmissions=4
 )
 
