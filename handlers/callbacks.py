@@ -1,5 +1,6 @@
 import asyncio
 import os
+import shutil
 
 from pyrogram import Client
 from pyrogram.types import (
@@ -21,9 +22,91 @@ from uploaders.pixeldrain import upload_to_pixeldrain
 from uploaders.gofile import upload_to_gofile
 
 
+async def process_upload(callback: CallbackQuery, destination: str, task_id: str, cancel_keyboard):
+    task = get_task(task_id)
+
+    if not task:
+        await callback.message.edit_text("❌ Task expired.")
+        return
+
+    message = task["message"]
+    file_path = None
+
+    try:
+        await callback.message.edit_text(
+            f"⏳ Preparing upload to **{destination.title()}**...",
+            reply_markup=cancel_keyboard
+        )
+
+        # Telegram media
+        if (
+            message.document
+            or message.video
+            or message.audio
+            or message.photo
+            or message.animation
+            or message.voice
+        ):
+            file_path = await download_telegram_file(
+                message,
+                callback.message,
+                task_id,
+                cancel_keyboard
+            )
+
+        # Direct URL
+        else:
+            file_path = await download_direct_file(
+                message.text,
+                callback.message,
+                task_id,
+                cancel_keyboard
+            )
+
+        task["file_path"] = file_path
+
+        # Upload
+        if destination == "pixeldrain":
+            await callback.message.edit_text(
+                "⬆️ Uploading to PixelDrain..."
+            )
+
+            url = await upload_to_pixeldrain(file_path)
+
+        elif destination == "gofile":
+            await callback.message.edit_text(
+                "⬆️ Uploading to GoFile..."
+            )
+
+            url = await upload_to_gofile(file_path)
+
+        else:
+            raise Exception("Unknown upload destination.")
+
+        await callback.message.edit_text(
+            f"✅ Upload Complete!\n\n🔗 {url}"
+        )
+
+    except asyncio.CancelledError:
+        await callback.message.edit_text(
+            "❌ Operation cancelled."
+        )
+
+    except Exception as e:
+        await callback.message.edit_text(
+            f"❌ Upload failed\n\n`{e}`"
+        )
+
+    finally:
+        remove_task(task_id)
+
+        if file_path and os.path.exists(file_path):
+            task_download_path = os.path.dirname(file_path)
+            shutil.rmtree(task_download_path, ignore_errors=True)
+
+
 @Client.on_callback_query()
 async def callback_handler(client: Client, callback: CallbackQuery):
-
     action, task_id = callback.data.split("|")
 
     cancel_keyboard = InlineKeyboardMarkup(
@@ -58,88 +141,16 @@ async def callback_handler(client: Client, callback: CallbackQuery):
         )
         return
 
-    await callback.answer()
-
-    message = task["message"]
-
-    file_path = None
-
-    try:
-
-        await callback.message.edit_text(
-            f"⏳ Preparing upload to **{destination.title()}**...",
-            reply_markup=cancel_keyboard
+    if task["status"] == "running":
+        await callback.answer(
+            "This task is already running.",
+            show_alert=False
         )
+        return
 
-        # Telegram media
-        if (
-            message.document
-            or message.video
-            or message.audio
-            or message.photo
-            or message.animation
-            or message.voice
-        ):
+    task["status"] = "running"
+    task["job"] = asyncio.create_task(
+        process_upload(callback, destination, task_id, cancel_keyboard)
+    )
 
-            file_path = await download_telegram_file(
-                message,
-                callback.message,
-                task_id,
-                cancel_keyboard
-            )
-
-        # Direct URL
-        else:
-
-            file_path = await download_direct_file(
-                message.text,
-                callback.message,
-                task_id,
-                cancel_keyboard
-            )
-
-        # Upload
-        if destination == "pixeldrain":
-
-            await callback.message.edit_text(
-                "⬆️ Uploading to PixelDrain..."
-            )
-
-            url = await upload_to_pixeldrain(file_path)
-
-        elif destination == "gofile":
-
-            await callback.message.edit_text(
-                "⬆️ Uploading to GoFile..."
-            )
-
-            url = await upload_to_gofile(file_path)
-
-        else:
-            raise Exception("Unknown upload destination.")
-
-        await callback.message.edit_text(
-            f"✅ Upload Complete!\n\n🔗 {url}"
-        )
-
-    except asyncio.CancelledError:
-
-        await callback.message.edit_text(
-            "❌ Operation cancelled."
-        )
-
-    except Exception as e:
-
-        await callback.message.edit_text(
-            f"❌ Upload failed\n\n`{e}`"
-        )
-
-    finally:
-
-        remove_task(task_id)
-
-        if (
-            file_path
-            and os.path.exists(file_path)
-        ):
-            os.remove(file_path)
+    await callback.answer("Started.", show_alert=False)
