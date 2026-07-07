@@ -5,7 +5,7 @@ from urllib.parse import urlparse, unquote
 import aiofiles
 import httpx
 
-from config import DOWNLOAD_PATH
+from config import DOWNLOAD_PATH, DIRECT_DOWNLOAD_CHUNK_SIZE
 from utils.progress import progress
 from core.tasks import is_cancelled
 
@@ -63,8 +63,11 @@ async def download_direct_file(
             if not filename:
                 filename = "downloaded_file"
 
+            task_download_path = os.path.join(DOWNLOAD_PATH, task_id or "direct")
+            os.makedirs(task_download_path, exist_ok=True)
+
             file_path = os.path.join(
-                DOWNLOAD_PATH,
+                task_download_path,
                 filename
             )
 
@@ -81,7 +84,7 @@ async def download_direct_file(
 
             async with aiofiles.open(file_path, "wb") as f:
 
-                async for chunk in response.aiter_bytes(1024 * 256):
+                async for chunk in response.aiter_bytes(DIRECT_DOWNLOAD_CHUNK_SIZE):
 
                     if task_id and is_cancelled(task_id):
                         raise asyncio.CancelledError()
