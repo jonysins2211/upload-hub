@@ -14,8 +14,7 @@ app = Client(
     bot_token=BOT_TOKEN,
     plugins={"root": "handlers"},
     workers=BOT_WORKERS,
-    max_concurrent_transmissions=MAX_CONCURRENT_TRANSMISSIONS,
-    max_concurrent_transmissions=4
+    max_concurrent_transmissions=MAX_CONCURRENT_TRANSMISSIONS
 )
 
 
